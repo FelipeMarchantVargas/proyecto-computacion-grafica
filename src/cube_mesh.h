@@ -13,7 +13,7 @@ public:
     void updateVertices(const std::vector<float>& newVertices);
     std::vector<float> getVertices();
     int findClosestFace(float mouseX, float mouseY);
-    std::vector<int> findConnectedVertices(float mouseX, float mouseY);
+    std::vector<int> findConnectedVertices(float mouseX, float mouseY, const glm::mat4& view, const glm::mat4& projection);
     std::vector<int> getFaceIndices(int faceIndex);
 
 private:

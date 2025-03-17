@@ -22,7 +22,7 @@ int main(){
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "My window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Proyecto Felipe Marchant", NULL, NULL);
     if (!window) { 
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -85,16 +85,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         float normalizedX = (2.0f * xpos) / width - 1.0f;
         float normalizedY = 1.0f - (2.0f * ypos) / height;
 
-        selectedVertices = cube->findConnectedVertices(normalizedX, normalizedY);
-        isDragging = !selectedVertices.empty(); // Si hay vértices, comenzamos a arrastrar
+        // Obtener matrices de vista y proyección
+        glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        selectedVertices = cube->findConnectedVertices(normalizedX, normalizedY, view, projection);
+        isDragging = !selectedVertices.empty();
         lastX = xpos;
         lastY = ypos;
     } 
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         isDragging = false;
-        selectedVertices.clear(); // Limpiar selección al soltar el botón
+        selectedVertices.clear();
     }
 }
+
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     if (isDragging && !selectedVertices.empty()) {

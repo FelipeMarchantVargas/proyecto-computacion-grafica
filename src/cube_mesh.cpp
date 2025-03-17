@@ -102,24 +102,35 @@ int CubeMesh::findClosestFace(float mouseX, float mouseY) {
     return closestFace;
 }
 
-std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY) {
+std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY, const glm::mat4& view, const glm::mat4& projection) {
     std::vector<int> connectedVertices;
     float minDistance = FLT_MAX;
     glm::vec3 targetVertex(0.0f);
 
     for (int i = 0; i < vertices.size(); i += 6) {
-        glm::vec3 vertexPos(vertices[i], vertices[i + 1], vertices[i + 2]);
-        float distance = glm::length2(glm::vec3(mouseX, mouseY, 0.0f) - glm::vec3(vertexPos.x, vertexPos.y, 0.0f));
+        glm::vec4 vertexPos(vertices[i], vertices[i + 1], vertices[i + 2], 1.0f);
+        glm::vec4 projected = projection * view * vertexPos;
+
+        // Convertir a coordenadas de pantalla normalizadas (-1 a 1)
+        projected /= projected.w;
+        float screenX = projected.x;
+        float screenY = projected.y;
+
+        float distance = glm::length2(glm::vec2(mouseX, mouseY) - glm::vec2(screenX, screenY));
 
         if (distance < minDistance) {
             minDistance = distance;
-            targetVertex = vertexPos;
+            targetVertex = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
         }
     }
 
+    // Umbral de selección (ajustable para mayor precisión)
+    float selectionThreshold = 0.01f;
+
     for (int i = 0; i < vertices.size(); i += 6) {
         glm::vec3 vertexPos(vertices[i], vertices[i + 1], vertices[i + 2]);
-        if (glm::length2(targetVertex - vertexPos) < 0.0001f) {
+
+        if (glm::length2(targetVertex - vertexPos) < selectionThreshold) {
             connectedVertices.push_back(i);
         }
     }
