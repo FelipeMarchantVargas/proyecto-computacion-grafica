@@ -6,26 +6,27 @@
 #include <iostream>
 
 CubeMesh::CubeMesh() {
-    vertices = {  // Se copia a la variable miembro para evitar problemas
-        // Posición           // Color
+    vertices = {
+        // Posición           // Color       // Coordenadas de textura
         // Cara frontal
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  
-
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  
+    
         // Cara derecha
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  
-
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 1.0f,  
+    
         // Cara superior
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  
-         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f   
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  1.0f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f   
     };
+    
 
     indices = {
         // Cara frontal
@@ -50,12 +51,16 @@ CubeMesh::CubeMesh() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Posición
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Coordenadas de textura
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }
