@@ -16,7 +16,7 @@ unsigned int loadTexture(const char* path);
 CubeMesh* cube = nullptr; 
 bool isDragging = false;
 double lastX = 0, lastY = 0;
-int selectedFace  = -1; // -1 indica que no hay selección
+int selectedFace  = -1;
 std::vector<int> selectedVertices;
 
 int main(){
@@ -54,6 +54,12 @@ int main(){
         "../src/shaders/fragment.txt"
     );
 
+    // Cargar diferentes texturas para cada cara del cubo
+    std::vector<unsigned int> textures(3);
+    textures[0] = loadTexture("../textures/among-us.jpg");
+    textures[1] = loadTexture("../textures/images.jpeg");
+    textures[2] = loadTexture("../textures/toilet.jpeg");
+
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -62,18 +68,13 @@ int main(){
         glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        unsigned int texture1 = loadTexture("../textures/among-us.jpg"); 
-
         glUseProgram(shader);
-        glUniform1i(glGetUniformLocation(shader, "texture1"), 0); 
-        glActiveTexture(GL_TEXTURE0); 
-        glBindTexture(GL_TEXTURE_2D, texture1);
 
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        cube->draw();
+        cube->draw(textures);
         glfwSwapBuffers(window);
     }
 

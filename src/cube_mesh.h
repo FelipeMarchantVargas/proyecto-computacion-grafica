@@ -9,7 +9,7 @@ class CubeMesh {
 public:
     CubeMesh();
     ~CubeMesh();
-    void draw();
+    void draw(std::vector<unsigned int> textures);
     void updateVertices(const std::vector<float>& newVertices);
     std::vector<float> getVertices();
     int findClosestFace(float mouseX, float mouseY);
