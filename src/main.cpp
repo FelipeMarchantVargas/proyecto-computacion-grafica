@@ -62,11 +62,11 @@ int main(){
         glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        unsigned int texture1 = loadTexture("../textures/among-us.jpg");
+        unsigned int texture1 = loadTexture("../textures/among-us.jpg"); 
 
         glUseProgram(shader);
-        glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
-        glActiveTexture(GL_TEXTURE0);
+        glUniform1i(glGetUniformLocation(shader, "texture1"), 0); 
+        glActiveTexture(GL_TEXTURE0); 
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -138,28 +138,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         std::cout << "Tecla presionada: " << key << std::endl;
 
         static std::vector<float> newVertices = {
-            // Posición          // Color
-            // Cara frontal
-            -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  
-             0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  
-             0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  
-            -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  
-
-            // Cara derecha
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  
-             0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  
-             0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  
-
-            // Cara superior
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  
-             0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  
-             0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  
-            -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f   
+        // Posición           // Color       // Coordenadas de textura
+        // Cara frontal
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  
+    
+        // Cara derecha
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 1.0f,  
+    
+        // Cara superior
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  1.0f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f   
         };
 
         // Modificar TODOS los vértices
-        for (size_t i = 0; i < newVertices.size(); i += 6) { // Avanzar de 6 en 6 (x, y, z, r, g, b)
+        for (size_t i = 0; i < newVertices.size(); i += 8) { // Avanzar de 6 en 6 (x, y, z, r, g, b)
             if (key == GLFW_KEY_UP) {
                 newVertices[i + 1] += 0.05f; // Mueve en eje Y
             } 

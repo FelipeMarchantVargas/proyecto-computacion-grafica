@@ -112,7 +112,7 @@ std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY, con
     float minDistance = FLT_MAX;
     glm::vec3 targetVertex(0.0f);
 
-    for (int i = 0; i < vertices.size(); i += 6) {
+    for (int i = 0; i < vertices.size(); i += 8) {
         glm::vec4 vertexPos(vertices[i], vertices[i + 1], vertices[i + 2], 1.0f);
         glm::vec4 projected = projection * view * vertexPos;
 
@@ -132,7 +132,7 @@ std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY, con
     // Umbral de selección (ajustable para mayor precisión)
     float selectionThreshold = 0.01f;
 
-    for (int i = 0; i < vertices.size(); i += 6) {
+    for (int i = 0; i < vertices.size(); i += 8) {
         glm::vec3 vertexPos(vertices[i], vertices[i + 1], vertices[i + 2]);
 
         if (glm::length2(targetVertex - vertexPos) < selectionThreshold) {
