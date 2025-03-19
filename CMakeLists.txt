@@ -8,8 +8,8 @@ add_executable(hello_window
     src/config.h 
     src/main.cpp 
     src/glad.c
-    src/cube_mesh.h
-    src/cube_mesh.cpp
+    src/mesh/cube_mesh.h
+    src/mesh/cube_mesh.cpp
 )
 
 target_include_directories(hello_window 

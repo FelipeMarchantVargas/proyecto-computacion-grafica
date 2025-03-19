@@ -1,8 +1,5 @@
 #include "config.h"
-#include "cube_mesh.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "mesh/cube_mesh.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "../dependencies/stb_image.h"
 
@@ -56,9 +53,9 @@ int main(){
 
     // Cargar diferentes texturas para cada cara del cubo
     std::vector<unsigned int> textures(3);
-    textures[0] = loadTexture("../textures/among-us.jpg");
-    textures[1] = loadTexture("../textures/images.jpeg");
-    textures[2] = loadTexture("../textures/toilet.jpeg");
+    textures[0] = loadTexture("../textures/cube_textures/dice-six-faces-one.png");
+    textures[1] = loadTexture("../textures/cube_textures/dice-six-faces-three.png");
+    textures[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
 
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
