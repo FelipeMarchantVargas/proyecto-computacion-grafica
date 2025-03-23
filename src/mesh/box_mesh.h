@@ -1,14 +1,14 @@
-#ifndef CUBE_MESH_H
-#define CUBE_MESH_H
+#ifndef BOX_MESH_H
+#define BOX_MESH_H
 
 #include <glad/glad.h>
 #include <vector>
 #include <glm/glm.hpp>
 
-class CubeMesh {
+class BoxMesh {
 public:
-    CubeMesh();
-    ~CubeMesh();
+    BoxMesh();
+    ~BoxMesh();
     void draw(std::vector<unsigned int> textures);
     void updateVertices(const std::vector<float>& newVertices);
     std::vector<float> getVertices();

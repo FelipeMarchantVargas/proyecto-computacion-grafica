@@ -10,6 +10,8 @@ add_executable(hello_window
     src/glad.c
     src/mesh/cube_mesh.h
     src/mesh/cube_mesh.cpp
+    src/mesh/box_mesh.h
+    src/mesh/box_mesh.cpp
 )
 
 target_include_directories(hello_window 

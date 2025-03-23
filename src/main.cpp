@@ -1,5 +1,6 @@
 #include "config.h"
 #include "mesh/cube_mesh.h"
+#include "mesh/box_mesh.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "../dependencies/stb_image.h"
 
@@ -11,10 +12,14 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type);
 unsigned int loadTexture(const char* path);
 
 CubeMesh* cube = nullptr; 
+BoxMesh* box = nullptr;
 bool isDragging = false;
 double lastX = 0, lastY = 0;
 int selectedFace  = -1;
 std::vector<int> selectedVertices;
+enum class SelectedMesh { NONE, CUBE, BOX };
+SelectedMesh selectedMesh = SelectedMesh::NONE;
+
 
 int main(){
     if(!glfwInit()){ 
@@ -22,7 +27,12 @@ int main(){
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Proyecto Felipe Marchant", NULL, NULL);
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Proyecto Felipe Marchant", monitor, NULL);
+
     if (!window) { 
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -46,6 +56,7 @@ int main(){
     glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
 
     cube = new CubeMesh();
+    box = new BoxMesh();
     unsigned int shader = make_shader(
         "../src/shaders/vertex.txt",
         "../src/shaders/fragment.txt"
@@ -56,22 +67,38 @@ int main(){
     textures[0] = loadTexture("../textures/cube_textures/dice-six-faces-one.png");
     textures[1] = loadTexture("../textures/cube_textures/dice-six-faces-three.png");
     textures[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
+    // Cargar diferentes texturas para cada cara del box
+    std::vector<unsigned int> texturesBox(3);
+    texturesBox[0] = loadTexture("../textures/cube_textures/dice-six-faces-one.png");
+    texturesBox[1] = loadTexture("../textures/cube_textures/dice-six-faces-three.png");
+    texturesBox[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
 
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        glm::mat4 modelCube = glm::mat4(1.0f);
+        glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
+
+        glm::mat4 view = glm::lookAt(glm::vec3(3.5f, 2.5f, 3.5f), 
+                             glm::vec3(1.0f, 0.0f, 0.0f), 
+                             glm::vec3(0.0f, 1.0f, 0.0f));
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mode->width / (float)mode->height, 0.1f, 100.0f);
 
         glUseProgram(shader);
-
-        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+        // Dibujar el cubo (más protagonista, primero)
+        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelCube));
         cube->draw(textures);
+
+        // Dibujar el cartucho al lado derecho
+        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelBox));
+        box->draw(texturesBox);
+
+
         glfwSwapBuffers(window);
     }
 
@@ -83,6 +110,8 @@ int main(){
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
@@ -92,43 +121,76 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         float normalizedX = (2.0f * xpos) / width - 1.0f;
         float normalizedY = 1.0f - (2.0f * ypos) / height;
 
-        // Obtener matrices de vista y proyección
-        glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        glm::mat4 modelCube = glm::mat4(1.0f);
+        glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
 
-        selectedVertices = cube->findConnectedVertices(normalizedX, normalizedY, view, projection);
-        isDragging = !selectedVertices.empty();
+        glm::mat4 view = glm::lookAt(glm::vec3(3.5f, 2.5f, 3.5f), 
+                             glm::vec3(1.0f, 0.0f, 0.0f), 
+                             glm::vec3(0.0f, 1.0f, 0.0f));
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mode->width / (float)mode->height, 0.1f, 100.0f);
+
+        auto [cubeIndex, cubeDist] = cube->findClosestVertexIndex(normalizedX, normalizedY, modelCube, view, projection);
+        auto [boxIndex, boxDist] = box->findClosestVertexIndex(normalizedX, normalizedY, modelBox, view, projection);
+        
+        float threshold = 0.05f;
+        
+        if (cubeDist < boxDist && cubeDist < threshold) {
+            selectedVertices = cube->findConnectedVertices(normalizedX, normalizedY, modelCube, view, projection);
+            selectedMesh = SelectedMesh::CUBE;
+            isDragging = true;
+        }
+        else if (boxDist < threshold) {
+            selectedVertices = box->findConnectedVertices(normalizedX, normalizedY, modelBox, view, projection);
+            selectedMesh = SelectedMesh::BOX;
+            isDragging = true;
+        }
+        
+
         lastX = xpos;
         lastY = ypos;
     } 
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         isDragging = false;
         selectedVertices.clear();
+        selectedMesh = SelectedMesh::NONE;
     }
 }
+
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     if (isDragging && !selectedVertices.empty()) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
 
-        // Reducir la sensibilidad del movimiento dividiendo entre un factor
-        float factor = 500.0f; // Ajusta este valor para suavizar más o menos
+        float factor = 500.0f;
         float movementX = (float)(xpos - lastX) / factor;
         float movementY = -(float)(ypos - lastY) / factor;
 
-        std::vector<float> newVertices = cube->getVertices();
+        std::vector<float> newVertices;
+
+        if (selectedMesh == SelectedMesh::CUBE) {
+            newVertices = cube->getVertices();
+        } else if (selectedMesh == SelectedMesh::BOX) {
+            newVertices = box->getVertices();
+        }
 
         for (int i : selectedVertices) {
             newVertices[i] += movementX;
             newVertices[i + 1] += movementY;
         }
 
-        cube->updateVertices(newVertices);
+        if (selectedMesh == SelectedMesh::CUBE) {
+            cube->updateVertices(newVertices);
+        } else if (selectedMesh == SelectedMesh::BOX) {
+            box->updateVertices(newVertices);
+        }
+
         lastX = xpos;
         lastY = ypos;
     }
 }
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {

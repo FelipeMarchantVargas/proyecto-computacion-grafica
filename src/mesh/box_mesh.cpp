@@ -1,31 +1,32 @@
-#include "cube_mesh.h"
+#include "box_mesh.h"
 #include <vector>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/norm.hpp>
 #include <iostream>
 
-CubeMesh::CubeMesh() {
+BoxMesh::BoxMesh() {
     vertices = {
-        // Posición           // Color       // Coordenadas de textura
+        // Posición                      // Color         // TexCoords
         // Cara frontal
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  
+       -0.6f, -0.25f,  0.15f,  1,0,0,    0,0,
+        0.6f, -0.25f,  0.15f,  0,1,0,    1,0,
+        0.6f,  0.25f,  0.15f,  0,0,1,    1,1,
+       -0.6f,  0.25f,  0.15f,  1,1,0,    0,1,
     
         // Cara derecha
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 1.0f,  
+        0.6f, -0.25f,  0.15f,  1,0,1,    0,0,
+        0.6f, -0.25f, -0.15f,  0,1,1,    1,0,
+        0.6f,  0.25f, -0.15f,  1,1,1,    1,1,
+        0.6f,  0.25f,  0.15f,  0.5,0.5,0.5, 0,1,
     
         // Cara superior
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  1.0f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f   
+       -0.6f,  0.25f,  0.15f,  1,0.5,0,    0,0,
+        0.6f,  0.25f,  0.15f,  0.5,1,0.5,  1,0,
+        0.6f,  0.25f, -0.15f,  0.5,0.5,1,  1,1,
+       -0.6f,  0.25f, -0.15f,  1,0,0.5,    0,1
     };
+    
     
 
     indices = {
@@ -65,7 +66,7 @@ CubeMesh::CubeMesh() {
     glBindVertexArray(0);
 }
 
-void CubeMesh::updateVertices(const std::vector<float>& newVertices) {
+void BoxMesh::updateVertices(const std::vector<float>& newVertices) {
     if (newVertices.size() != vertices.size()) {
         std::cerr << "Error: nuevo tamaño de vértices incorrecto" << std::endl;
         return;
@@ -75,7 +76,7 @@ void CubeMesh::updateVertices(const std::vector<float>& newVertices) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
 }
 
-void CubeMesh::draw(std::vector<unsigned int> textures) {
+void BoxMesh::draw(std::vector<unsigned int> textures) {
     glBindVertexArray(VAO);
 
     for (int i = 0; i < 6; ++i) {
@@ -86,11 +87,11 @@ void CubeMesh::draw(std::vector<unsigned int> textures) {
     glBindVertexArray(0);
 }
 
-std::vector<float> CubeMesh::getVertices() {
+std::vector<float> BoxMesh::getVertices() {
     return vertices;
 }
 
-int CubeMesh::findClosestFace(float mouseX, float mouseY) {
+int BoxMesh::findClosestFace(float mouseX, float mouseY) {
     int closestFace = -1;
     float minDistance = FLT_MAX;
 
@@ -112,7 +113,7 @@ int CubeMesh::findClosestFace(float mouseX, float mouseY) {
     return closestFace;
 }
 
-std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY, const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) {
+std::vector<int> BoxMesh::findConnectedVertices(float mouseX, float mouseY, const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) {
     std::vector<int> connectedVertices;
     float minDistance = FLT_MAX;
     glm::vec3 targetVertex(0.0f);
@@ -148,7 +149,7 @@ std::vector<int> CubeMesh::findConnectedVertices(float mouseX, float mouseY, con
     return connectedVertices;
 }
 
-std::vector<int> CubeMesh::getFaceIndices(int faceIndex) {
+std::vector<int> BoxMesh::getFaceIndices(int faceIndex) {
     std::vector<int> faceIndices;
     if (faceIndex < 0 || faceIndex * 6 >= indices.size()) return faceIndices;
 
@@ -159,7 +160,7 @@ std::vector<int> CubeMesh::getFaceIndices(int faceIndex) {
     return faceIndices;
 }
 
-std::pair<int, float> CubeMesh::findClosestVertexIndex(float mouseX, float mouseY, const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) {
+std::pair<int, float> BoxMesh::findClosestVertexIndex(float mouseX, float mouseY, const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) {
     int closestIndex = -1;
     float minDistance = FLT_MAX;
 
@@ -182,7 +183,7 @@ std::pair<int, float> CubeMesh::findClosestVertexIndex(float mouseX, float mouse
 }
 
 
-CubeMesh::~CubeMesh() {
+BoxMesh::~BoxMesh() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
