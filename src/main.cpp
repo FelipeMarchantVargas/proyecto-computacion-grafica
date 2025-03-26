@@ -19,6 +19,9 @@ int selectedFace  = -1;
 std::vector<int> selectedVertices;
 enum class SelectedMesh { NONE, CUBE, BOX };
 SelectedMesh selectedMesh = SelectedMesh::NONE;
+static glm::vec3 cameraPos = glm::vec3(3.5f, 2.5f, 3.5f);
+static glm::vec3 cameraLookAt = glm::vec3(1.0f, 0.0f, 0.0f);
+static float cameraSpeed = 0.1f;
 
 
 int main(){
@@ -53,7 +56,7 @@ int main(){
     }
     
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
+    glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
     cube = new CubeMesh();
     box = new BoxMesh();
@@ -69,9 +72,9 @@ int main(){
     textures[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
     // Cargar diferentes texturas para cada cara del box
     std::vector<unsigned int> texturesBox(3);
-    texturesBox[0] = loadTexture("../textures/cube_textures/dice-six-faces-one.png");
-    texturesBox[1] = loadTexture("../textures/cube_textures/dice-six-faces-three.png");
-    texturesBox[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
+    texturesBox[0] = loadTexture("../textures/other/Super_Mario_64_Cartucho.jpg");
+    texturesBox[1] = loadTexture("../textures/other/8b8888.png");
+    texturesBox[2] = loadTexture("../textures/other/8b8888.png");
 
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
@@ -79,10 +82,13 @@ int main(){
 
         glm::mat4 modelCube = glm::mat4(1.0f);
         glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
-
-        glm::mat4 view = glm::lookAt(glm::vec3(3.5f, 2.5f, 3.5f), 
-                             glm::vec3(1.0f, 0.0f, 0.0f), 
-                             glm::vec3(0.0f, 1.0f, 0.0f));
+        
+        // -------------- USO DE LA POSICIÓN DE LA CÁMARA --------------
+        glm::mat4 view = glm::lookAt(
+            cameraPos, 
+            cameraLookAt, 
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mode->width / (float)mode->height, 0.1f, 100.0f);
 
@@ -124,9 +130,10 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         glm::mat4 modelCube = glm::mat4(1.0f);
         glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
 
-        glm::mat4 view = glm::lookAt(glm::vec3(3.5f, 2.5f, 3.5f), 
-                             glm::vec3(1.0f, 0.0f, 0.0f), 
-                             glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 view = glm::lookAt(
+                            cameraPos, 
+                            cameraLookAt, 
+                            glm::vec3(0.0f, 1.0f, 0.0f));
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mode->width / (float)mode->height, 0.1f, 100.0f);
 
@@ -238,6 +245,49 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             cube->updateVertices(newVertices);
         }
     }
+        // ------------ Controles WASD + Q/E para la cámara ------------
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_W) {
+            cameraPos.z -= cameraSpeed;  // W = acercarse en -Z 
+        }
+        if (key == GLFW_KEY_S) {
+            cameraPos.z += cameraSpeed;  // S = alejarse en +Z
+        }
+        if (key == GLFW_KEY_A) {
+            cameraPos.x -= cameraSpeed;  // A = moverse a la izquierda en -X
+        }
+        if (key == GLFW_KEY_D) {
+            cameraPos.x += cameraSpeed;  // D = moverse a la derecha en +X
+        }
+        if (key == GLFW_KEY_Q) {
+            cameraPos.y += cameraSpeed;  // Q = moverse hacia arriba en +Y
+        }
+        if (key == GLFW_KEY_E) {
+            cameraPos.y -= cameraSpeed;  // E = moverse hacia abajo en -Y
+        }
+    }
+
+    // ------------ Controles IKJL + U/O para la cámara ------------
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_I) {
+            cameraLookAt.z -= cameraSpeed;  // I = acercarse en -Z
+        }
+        if (key == GLFW_KEY_K) {
+            cameraLookAt.z += cameraSpeed;  // K = alejarse en +Z
+        }
+        if (key == GLFW_KEY_J) {
+            cameraLookAt.x -= cameraSpeed;  // J = moverse a la izquierda en -X
+        }
+        if (key == GLFW_KEY_L) {
+            cameraLookAt.x += cameraSpeed;  // L = moverse a la derecha en +X
+        }
+        if (key == GLFW_KEY_U) {
+            cameraLookAt.y += cameraSpeed;  // U = moverse hacia arriba en +Y
+        }
+        if (key == GLFW_KEY_O) {
+            cameraLookAt.y -= cameraSpeed;  // O = moverse hacia abajo en -Y
+        }
+    }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -301,6 +351,7 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type){
 }
 
 unsigned int loadTexture(const char* path) {
+    stbi_set_flip_vertically_on_load(true);
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
