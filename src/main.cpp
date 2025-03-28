@@ -10,6 +10,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 unsigned int make_shader(const std::string& vertex_filepath, const std::string& fragment_filepath);
 unsigned int make_module(const std::string& filepath, unsigned int module_type);
 unsigned int loadTexture(const char* path);
+bool loadAllVideos();
+void updateVideoFrames();
 
 CubeMesh* cube = nullptr; 
 BoxMesh* box = nullptr;
@@ -22,6 +24,8 @@ SelectedMesh selectedMesh = SelectedMesh::NONE;
 static glm::vec3 cameraPos = glm::vec3(3.5f, 2.5f, 3.5f);
 static glm::vec3 cameraLookAt = glm::vec3(1.0f, 0.0f, 0.0f);
 static float cameraSpeed = 0.1f;
+static cv::VideoCapture captures[3];
+static GLuint textureIDs[3];
 
 
 int main(){
@@ -65,11 +69,23 @@ int main(){
         "../src/shaders/fragment.txt"
     );
 
-    // Cargar diferentes texturas para cada cara del cubo
-    std::vector<unsigned int> textures(3);
-    textures[0] = loadTexture("../textures/cube_textures/dice-six-faces-one.png");
-    textures[1] = loadTexture("../textures/cube_textures/dice-six-faces-three.png");
-    textures[2] = loadTexture("../textures/cube_textures/dice-six-faces-five.png");
+    if (!loadAllVideos()) {
+        std::cerr << "Error al cargar videos." << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    // Cargar texturas para el cubo
+
+    glGenTextures(3, textureIDs);
+for (int i = 0; i < 3; i++) {
+    glBindTexture(GL_TEXTURE_2D, textureIDs[i]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+
     // Cargar diferentes texturas para cada cara del box
     std::vector<unsigned int> texturesBox(3);
     texturesBox[0] = loadTexture("../textures/other/Super_Mario_64_Cartucho.jpg");
@@ -79,6 +95,8 @@ int main(){
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        updateVideoFrames();
 
         glm::mat4 modelCube = glm::mat4(1.0f);
         glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
@@ -98,7 +116,8 @@ int main(){
 
         // Dibujar el cubo (más protagonista, primero)
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelCube));
-        cube->draw(textures);
+        cube->draw({textureIDs[0], textureIDs[1], textureIDs[2]});
+
 
         // Dibujar el cartucho al lado derecho
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelBox));
@@ -356,7 +375,7 @@ unsigned int loadTexture(const char* path) {
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    // Configurar parámetros de la textura
+    // Configuración de parámetros de la textura
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -373,4 +392,40 @@ unsigned int loadTexture(const char* path) {
     }
     stbi_image_free(data);
     return textureID;
+}
+
+
+bool loadAllVideos() {
+    // Rutas de ejemplo, cambia según tus archivos reales
+    const char* videoPaths[3] = {
+        "../textures/videos/a.mp4",
+        "../textures/videos/a.mp4",
+        "../textures/videos/a.mp4"
+    };
+
+    for (int i = 0; i < 3; i++) {
+        captures[i].open(videoPaths[i]);
+        if(!captures[i].isOpened()){
+            std::cerr << "No se pudo abrir el video " << videoPaths[i] << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+void updateVideoFrames() {
+    for (int i = 0; i < 3; i++) {
+        cv::Mat frame;
+        if (captures[i].read(frame)) {
+            cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+
+            cv::flip(frame, frame, 0);
+            
+            glBindTexture(GL_TEXTURE_2D, textureIDs[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame.cols, frame.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        } else {
+            captures[i].set(cv::CAP_PROP_POS_FRAMES, 0); // Reiniciar video si termina
+        }
+    }
 }

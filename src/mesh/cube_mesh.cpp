@@ -78,7 +78,7 @@ void CubeMesh::updateVertices(const std::vector<float>& newVertices) {
 void CubeMesh::draw(std::vector<unsigned int> textures) {
     glBindVertexArray(VAO);
 
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 3; ++i) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
     }
