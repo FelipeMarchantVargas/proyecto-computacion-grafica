@@ -12,6 +12,7 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type);
 unsigned int loadTexture(const char* path);
 bool loadAllVideos();
 void updateVideoFrames();
+void calculateFPS();
 
 CubeMesh* cube = nullptr; 
 BoxMesh* box = nullptr;
@@ -26,6 +27,8 @@ static glm::vec3 cameraLookAt = glm::vec3(1.0f, 0.0f, 0.0f);
 static float cameraSpeed = 0.1f;
 static cv::VideoCapture captures[3];
 static GLuint textureIDs[3];
+double lastTime = glfwGetTime();
+int frameCount = 0;
 
 
 int main(){
@@ -95,6 +98,8 @@ for (int i = 0; i < 3; i++) {
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        calculateFPS();
 
         updateVideoFrames();
 
@@ -226,26 +231,26 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         static std::vector<float> newVertices = {
         // Posición           // Color       // Coordenadas de textura
         // Cara frontal
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 0.0f,  
          0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
          0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.25f, 1.0f,  
     
-        // Cara derecha
+        // Cara derecha (Timer)
          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 1.0f,  
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.228f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.228f, 0.69f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 0.69f,  
     
         // Cara superior
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  1.0f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f   
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.7f,  
+         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  0.228f, 0.7f,  
+         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  0.228f, 1.0f,  
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f
         };
 
         // Modificar TODOS los vértices
-        for (size_t i = 0; i < newVertices.size(); i += 8) { // Avanzar de 6 en 6 (x, y, z, r, g, b)
+        for (size_t i = 0; i < newVertices.size(); i += 8) { // Avanzar de 8 en 8 (x, y, z, r, g, b, u, v)
             if (key == GLFW_KEY_UP) {
                 newVertices[i + 1] += 0.05f; // Mueve en eje Y
             } 
@@ -394,19 +399,14 @@ unsigned int loadTexture(const char* path) {
     return textureID;
 }
 
-
 bool loadAllVideos() {
     // Rutas de ejemplo, cambia según tus archivos reales
-    const char* videoPaths[3] = {
-        "../textures/videos/a.mp4",
-        "../textures/videos/a.mp4",
-        "../textures/videos/a.mp4"
-    };
+    const char* videoPath = "../textures/videos/a.mp4";
 
     for (int i = 0; i < 3; i++) {
-        captures[i].open(videoPaths[i]);
+        captures[i].open(videoPath);
         if(!captures[i].isOpened()){
-            std::cerr << "No se pudo abrir el video " << videoPaths[i] << std::endl;
+            std::cerr << "No se pudo abrir el video " << videoPath << std::endl;
             return false;
         }
     }
@@ -427,5 +427,15 @@ void updateVideoFrames() {
         } else {
             captures[i].set(cv::CAP_PROP_POS_FRAMES, 0); // Reiniciar video si termina
         }
+    }
+}
+
+void calculateFPS() {
+    double currentTime = glfwGetTime();
+    frameCount++;
+    if (currentTime - lastTime >= 1.0) {
+        std::cout << "FPS: " << frameCount << std::endl;
+        frameCount = 0;
+        lastTime = currentTime;
     }
 }
