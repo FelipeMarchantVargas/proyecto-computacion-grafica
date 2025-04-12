@@ -10,21 +10,21 @@ CubeMesh::CubeMesh() {
         // Posición           // Color       // Coordenadas de textura
         // Cara frontal (Juego)
         -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 0.0f,  
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.25f, 1.0f,  
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 1.0f,  
     
         // Cara derecha (Timer)
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.228f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.228f, 0.69f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 0.69f,  
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.228f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.228f, 0.69f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.69f,  
     
         // Cara superior
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.7f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  0.228f, 0.7f,  
-         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  0.228f, 1.0f,  
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f   
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.7f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 0.7f,  
+         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 1.0f,  
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f   
     };
     
 
@@ -75,16 +75,24 @@ void CubeMesh::updateVertices(const std::vector<float>& newVertices) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
 }
 
-void CubeMesh::draw(std::vector<unsigned int> textures) {
+void CubeMesh::draw(const std::vector<unsigned int>& textures, bool useTextures) {
     glBindVertexArray(VAO);
 
-    for (int i = 0; i < 3; ++i) {
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+    if (useTextures && textures.size() >= 3) {
+        for (int i = 0; i < 3; ++i) {
+            glBindTexture(GL_TEXTURE_2D, textures[i]);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+        }
+    } else {
+        for (int i = 0; i < 3; ++i) {
+            glBindTexture(GL_TEXTURE_2D, 0);  // Unbind texture
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+        }
     }
 
     glBindVertexArray(0);
 }
+
 
 std::vector<float> CubeMesh::getVertices() {
     return vertices;

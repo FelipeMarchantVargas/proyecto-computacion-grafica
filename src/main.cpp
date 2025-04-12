@@ -29,6 +29,7 @@ static cv::VideoCapture captures[3];
 static GLuint textureIDs[3];
 double lastTime = glfwGetTime();
 int frameCount = 0;
+bool useTextures = false;  // Inicialmente falso, solo colores.
 
 
 int main(){
@@ -91,7 +92,7 @@ for (int i = 0; i < 3; i++) {
 
     // Cargar diferentes texturas para cada cara del box
     std::vector<unsigned int> texturesBox(3);
-    texturesBox[0] = loadTexture("../textures/other/Super_Mario_64_Cartucho.jpg");
+    texturesBox[0] = loadTexture("../textures/other/Zelda oot.jpg");
     texturesBox[1] = loadTexture("../textures/other/8b8888.png");
     texturesBox[2] = loadTexture("../textures/other/8b8888.png");
 
@@ -101,7 +102,10 @@ for (int i = 0; i < 3; i++) {
 
         calculateFPS();
 
-        updateVideoFrames();
+        if (useTextures) {
+            updateVideoFrames();
+        }
+        
 
         glm::mat4 modelCube = glm::mat4(1.0f);
         glm::mat4 modelBox = glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.6f)); // glm::vec3(2.0f, 0.0f, -0.7f)
@@ -116,17 +120,18 @@ for (int i = 0; i < 3; i++) {
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mode->width / (float)mode->height, 0.1f, 100.0f);
 
         glUseProgram(shader);
+        glUniform1i(glGetUniformLocation(shader, "useTextures"), useTextures);
+
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-        // Dibujar el cubo (más protagonista, primero)
+        
+        // Cubo
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelCube));
-        cube->draw({textureIDs[0], textureIDs[1], textureIDs[2]});
-
-
-        // Dibujar el cartucho al lado derecho
+        cube->draw({textureIDs[0], textureIDs[1], textureIDs[2]}, useTextures);
+        
+        // Paralelepípedo
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(modelBox));
-        box->draw(texturesBox);
+        box->draw(texturesBox, useTextures);
 
 
         glfwSwapBuffers(window);
@@ -188,7 +193,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
-
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     if (isDragging && !selectedVertices.empty()) {
         int width, height;
@@ -222,7 +226,6 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     }
 }
 
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     if (action == GLFW_PRESS) {
@@ -232,21 +235,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         // Posición           // Color       // Coordenadas de textura
         // Cara frontal
         -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 0.0f,  
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.25f, 1.0f,  
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,  
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 1.0f,  
     
         // Cara derecha (Timer)
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,  
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.228f, 0.0f,  
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.228f, 0.69f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,  0.0f, 0.69f,  
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,  
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.228f, 0.0f,  
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.228f, 0.69f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.69f,  
     
         // Cara superior
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.7f,  
-         0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 0.5f,  0.228f, 0.7f,  
-         0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 1.0f,  0.228f, 1.0f,  
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.7f,  
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 0.7f,  
+         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 1.0f,  
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f   
         };
 
         // Modificar TODOS los vértices
@@ -312,6 +315,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             cameraLookAt.y -= cameraSpeed;  // O = moverse hacia abajo en -Y
         }
     }
+
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        useTextures = !useTextures;  // Alternar entre usar texturas o no
+    }    
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);

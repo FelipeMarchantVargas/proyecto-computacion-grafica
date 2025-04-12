@@ -9,22 +9,22 @@ BoxMesh::BoxMesh() {
     vertices = {
         // Posición                      // Color         // TexCoords
         // Cara frontal
-       -0.6f, -0.25f,  0.15f,  1,0,0,    0,0,
-        0.6f, -0.25f,  0.15f,  0,1,0,    1,0,
-        0.6f,  0.25f,  0.15f,  0,0,1,    1,1,
+       -0.6f, -0.25f,  0.15f,  1,1,0,    0,0,
+        0.6f, -0.25f,  0.15f,  1,1,0,    1,0,
+        0.6f,  0.25f,  0.15f,  1,1,0,    1,1,
        -0.6f,  0.25f,  0.15f,  1,1,0,    0,1,
     
         // Cara derecha
         0.6f, -0.25f,  0.15f,  1,0,1,    0,0,
-        0.6f, -0.25f, -0.15f,  0,1,1,    1,0,
-        0.6f,  0.25f, -0.15f,  1,1,1,    1,1,
-        0.6f,  0.25f,  0.15f,  0.5,0.5,0.5, 0,1,
+        0.6f, -0.25f, -0.15f,  1,0,1,    1,0,
+        0.6f,  0.25f, -0.15f,  1,0,1,    1,1,
+        0.6f,  0.25f,  0.15f,  1,0,1,    0,1,
     
         // Cara superior
-       -0.6f,  0.25f,  0.15f,  1,0.5,0,    0,0,
-        0.6f,  0.25f,  0.15f,  0.5,1,0.5,  1,0,
-        0.6f,  0.25f, -0.15f,  0.5,0.5,1,  1,1,
-       -0.6f,  0.25f, -0.15f,  1,0,0.5,    0,1
+       -0.6f,  0.25f,  0.15f,  0,1,1,    0,0,
+        0.6f,  0.25f,  0.15f,  0,1,1,     1,0,
+        0.6f,  0.25f, -0.15f,  0,1,1,     1,1,
+       -0.6f,  0.25f, -0.15f,  0,1,1,    0,1
     };
     
     
@@ -76,16 +76,24 @@ void BoxMesh::updateVertices(const std::vector<float>& newVertices) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
 }
 
-void BoxMesh::draw(std::vector<unsigned int> textures) {
+void BoxMesh::draw(const std::vector<unsigned int>& textures, bool useTextures) {
     glBindVertexArray(VAO);
 
-    for (int i = 0; i < 6; ++i) {
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+    if (useTextures && textures.size() >= 3) {
+        for (int i = 0; i < 3; ++i) {
+            glBindTexture(GL_TEXTURE_2D, textures[i]);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+        }
+    } else {
+        for (int i = 0; i < 3; ++i) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(unsigned int)));
+        }
     }
 
     glBindVertexArray(0);
 }
+
 
 std::vector<float> BoxMesh::getVertices() {
     return vertices;

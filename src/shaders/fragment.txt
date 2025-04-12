@@ -6,7 +6,11 @@ in vec2 TexCoord;
 out vec4 screenColor;
 
 uniform sampler2D texture1;
+uniform bool useTextures; // <-- nueva variable de control
 
-void main(){
-    screenColor = texture(texture1, TexCoord);
+void main() {
+    if (useTextures)
+        screenColor = texture(texture1, TexCoord);
+    else
+        screenColor = vec4(fragmentColor, 1.0); // usa color por vértice
 }

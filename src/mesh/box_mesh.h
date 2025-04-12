@@ -9,7 +9,7 @@ class BoxMesh {
 public:
     BoxMesh();
     ~BoxMesh();
-    void draw(std::vector<unsigned int> textures);
+    void draw(const std::vector<unsigned int>& textures, bool useTextures);
     void updateVertices(const std::vector<float>& newVertices);
     std::vector<float> getVertices();
     int findClosestFace(float mouseX, float mouseY);
