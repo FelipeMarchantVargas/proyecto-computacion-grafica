@@ -12,8 +12,10 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type);
 unsigned int loadTexture(const char* path);
 bool loadAllVideos();
 void updateVideoFrames();
-void calculateFPS();
+void changeVideo(int newIndex);
+void changeBoxImage(int newIndex, std::vector<unsigned int>& texturesBox);
 
+std::vector<unsigned int> texturesBox(3);
 CubeMesh* cube = nullptr; 
 BoxMesh* box = nullptr;
 bool isDragging = false;
@@ -29,7 +31,71 @@ static cv::VideoCapture captures[3];
 static GLuint textureIDs[3];
 double lastTime = glfwGetTime();
 int frameCount = 0;
-bool useTextures = false;  // Inicialmente falso, solo colores.
+bool useTextures = false;
+// Rutas de video disponibles
+std::vector<std::string> videoPaths = {
+    "../textures/videos/a.mp4",
+    "../textures/videos/b.mp4",
+    "../textures/videos/c.mp4",
+    "../textures/videos/d.mp4",
+    "../textures/videos/e.mp4",
+};
+
+// Rutas de texturas para el cartucho
+std::vector<std::string> boxImagePaths = {
+    "../textures/other/Super_Mario_64_Cartucho.jpg",
+    "../textures/other/Zelda oot.png",
+    "../textures/other/Starfox.png",
+    "../textures/other/Mario kart.png",
+    "../textures/other/Donkey kong.png",
+};
+
+int currentVideoIndex = 0;
+int currentImageIndex = 0;
+
+std::vector<glm::vec2> texCoordsSet1 = {
+    // Cara frontal (4 vértices)
+    {0.25f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.25f, 1.0f},
+    // Cara derecha (4 vértices)
+    {0.0f, 0.0f}, {0.228f, 0.0f}, {0.228f, 0.69f}, {0.0f, 0.69f},
+    // Cara superior (4 vértices)
+    {0.0f, 0.7f}, {0.228f, 0.7f}, {0.228f, 1.0f}, {0.0f, 1.0f}
+};
+std::vector<glm::vec2> texCoordsSet2 = {
+    // Cara frontal (4 vértices)
+    {0.25f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.25f, 1.0f},
+    // Cara derecha (4 vértices)
+    {0.0f, 0.28f}, {0.25f, 0.28f}, {0.25f, 1.0f}, {0.0f, 1.0f},
+    // Cara superior (4 vértices)
+    {0.0f, 0.0f}, {0.25f, 0.0f}, {0.25f, 0.28f}, {0.0f, 0.28f}
+};
+std::vector<glm::vec2> texCoordsSet3 = {
+    // Cara frontal (4 vértices)
+    {0.31f, 0.16f}, {0.999f, 0.16f}, {0.999f, 0.95f}, {0.31f, 0.95f},
+    // Cara derecha (4 vértices)
+    {0.05f, 0.45f}, {0.28f, 0.45f}, {0.28f, 0.97f}, {0.05f, 0.97f},
+    // Cara superior (4 vértices)
+    {0.05f, 0.18f}, {0.27f, 0.18f}, {0.27f, 0.4f}, {0.05f, 0.4f}
+};
+std::vector<glm::vec2> texCoordsSet4 = {
+    // Cara frontal (4 vértices)
+    {0.05f, 0.2f}, {0.8f, 0.2f}, {0.8f, 0.96f}, {0.05f, 0.96f},
+    // Cara derecha (4 vértices)
+    {0.0f, 0.02f}, {0.33f, 0.02f}, {0.33f, 0.14f}, {0.0f, 0.14f},
+    // Cara superior (4 vértices)
+    {0.8f, 0.69f}, {0.95f, 0.69f}, {0.95f, 0.965f}, {0.8f, 0.965f}
+};
+std::vector<glm::vec2> texCoordsSet5 = {
+    // Cara frontal (4 vértices)
+    {0.235f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.235f, 1.0f},
+    // Cara derecha (4 vértices)
+    {0.0f, 0.0f}, {0.23f, 0.0f}, {0.23f, 0.66f}, {0.0f, 0.66f},
+    // Cara superior (4 vértices)
+    {0.0f, 0.66f}, {0.23f, 0.66f}, {0.23f, 1.0f}, {0.0f, 1.0f}
+};
+
+
+
 
 
 int main(){
@@ -91,16 +157,13 @@ for (int i = 0; i < 3; i++) {
 
 
     // Cargar diferentes texturas para cada cara del box
-    std::vector<unsigned int> texturesBox(3);
-    texturesBox[0] = loadTexture("../textures/other/Zelda oot.jpg");
+    texturesBox[0] = loadTexture("../textures/other/Super_Mario_64_Cartucho.jpg");
     texturesBox[1] = loadTexture("../textures/other/8b8888.png");
     texturesBox[2] = loadTexture("../textures/other/8b8888.png");
 
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        calculateFPS();
 
         if (useTextures) {
             updateVideoFrames();
@@ -136,6 +199,8 @@ for (int i = 0; i < 3; i++) {
 
         glfwSwapBuffers(window);
     }
+
+    
 
     glfwDestroyWindow(window);
     glDeleteProgram(shader);
@@ -229,9 +294,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     if (action == GLFW_PRESS) {
-        std::cout << "Tecla presionada: " << key << std::endl;
 
-        static std::vector<float> newVertices = {
+        /* static std::vector<float> newVertices = {
         // Posición           // Color       // Coordenadas de textura
         // Cara frontal
         -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.25f, 0.0f,  
@@ -250,7 +314,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
          0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 0.7f,  
          0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.228f, 1.0f,  
         -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f   
-        };
+        }; */
+
+        std::vector<float> newVertices = cube->getVertices();
 
         // Modificar TODOS los vértices
         for (size_t i = 0; i < newVertices.size(); i += 8) { // Avanzar de 8 en 8 (x, y, z, r, g, b, u, v)
@@ -318,6 +384,37 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
         useTextures = !useTextures;  // Alternar entre usar texturas o no
+    }    
+
+    if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+        int nextVideo = (currentVideoIndex + 1) % videoPaths.size();
+        int nextImage = (currentImageIndex + 1) % boxImagePaths.size();
+    
+        changeVideo(nextVideo);
+        changeBoxImage(nextImage, texturesBox);
+
+        switch (nextVideo)
+        {
+        case 0:
+            cube->updateTexCoords(texCoordsSet1);
+            break;
+        
+        case 1:
+            cube->updateTexCoords(texCoordsSet2);
+            break;
+        case 2: 
+            cube->updateTexCoords(texCoordsSet3);
+            break;
+        case 3:
+            cube->updateTexCoords(texCoordsSet4);
+            break;
+        case 4: 
+            cube->updateTexCoords(texCoordsSet5);
+            break;
+
+        default:
+            break;
+        }
     }    
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -437,12 +534,27 @@ void updateVideoFrames() {
     }
 }
 
-void calculateFPS() {
-    double currentTime = glfwGetTime();
-    frameCount++;
-    if (currentTime - lastTime >= 1.0) {
-        std::cout << "FPS: " << frameCount << std::endl;
-        frameCount = 0;
-        lastTime = currentTime;
+void changeVideo(int newIndex) {
+    if (newIndex < 0 || newIndex >= videoPaths.size()) return;
+
+    currentVideoIndex = newIndex;
+
+    for (int i = 0; i < 3; ++i) {
+        captures[i].release(); // Libera anterior
+        captures[i].open(videoPaths[newIndex]);
+
+        if (!captures[i].isOpened()) {
+            std::cerr << "No se pudo abrir el video: " << videoPaths[newIndex] << std::endl;
+        }
     }
+}
+
+void changeBoxImage(int newIndex, std::vector<unsigned int>& texturesBox) {
+    if (newIndex < 0 || newIndex >= boxImagePaths.size()) return;
+
+    currentImageIndex = newIndex;
+
+    // Cambiar solo una cara del cartucho (por ejemplo, la frontal)
+    glDeleteTextures(1, &texturesBox[0]);
+    texturesBox[0] = loadTexture(boxImagePaths[newIndex].c_str());
 }

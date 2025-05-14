@@ -93,7 +93,6 @@ void CubeMesh::draw(const std::vector<unsigned int>& textures, bool useTextures)
     glBindVertexArray(0);
 }
 
-
 std::vector<float> CubeMesh::getVertices() {
     return vertices;
 }
@@ -187,6 +186,22 @@ std::pair<int, float> CubeMesh::findClosestVertexIndex(float mouseX, float mouse
     }
 
     return { closestIndex, minDistance };
+}
+
+void CubeMesh::updateTexCoords(const std::vector<glm::vec2>& newTexCoords) {
+    if (newTexCoords.size() * 8 != vertices.size()) {
+        std::cerr << "Error: cantidad de coordenadas de textura no coincide con el arreglo de vértices" << std::endl;
+        return;
+    }
+
+    for (size_t i = 0; i < newTexCoords.size(); ++i) {
+        vertices[i * 8 + 6] = newTexCoords[i].x; // u
+        vertices[i * 8 + 7] = newTexCoords[i].y; // v
+    }
+
+    // Actualiza el buffer en la GPU
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
 }
 
 

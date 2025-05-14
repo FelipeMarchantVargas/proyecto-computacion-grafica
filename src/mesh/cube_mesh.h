@@ -16,6 +16,8 @@ public:
     std::vector<int> findConnectedVertices(float mouseX, float mouseY, const glm::mat4& model,const glm::mat4& view, const glm::mat4& projection);
     std::vector<int> getFaceIndices(int faceIndex);
     std::pair<int, float> findClosestVertexIndex(float mouseX, float mouseY, const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection);
+    void updateTexCoords(const std::vector<glm::vec2>& newTexCoords);
+
 
 private:
     GLuint VAO, VBO, EBO, vertex_count;
